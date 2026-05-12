@@ -22,7 +22,9 @@ shell-integration widget) so you can review or edit it before pressing Enter.
 ## Requirements
 
 - Rust toolchain (1.86+ recommended; edition 2024)
-- [`fzf`](https://github.com/junegunn/fzf) on your `PATH`
+- [`fzf`](https://github.com/junegunn/fzf) on your `PATH` (the Homebrew install
+  pulls it in automatically; other install methods need a manual `brew install
+  fzf` / `apt install fzf` etc.)
 - macOS or Linux
 - An API key for one of: Anthropic / OpenAI / Gemini (Ollama needs only a
   running local server)
@@ -74,40 +76,33 @@ cargo build --release
 
 ### Man pages
 
-Man pages are generated on demand from the clap definitions. Generate them
-into `target/man/`:
+After installing `zxcv` (any method), run once:
 
 ```sh
-cargo run --example gen-man
+zxcv install-man
 ```
 
-Files produced:
+This generates and writes man pages under `$XDG_DATA_HOME/man/man1/` (defaults
+to `~/.local/share/man/man1/`). After that, `man zxcv`, `man zxcv-config`,
+`man zxcv-history`, etc. work.
 
-- `zxcv.1`
-- `zxcv-init.1`
-- `zxcv-config.1`
-- `zxcv-history.1`
-- `zxcv-history-clear.1`
+If `~/.local/share/man` is not in your manpath, `install-man` prints the
+`export MANPATH=...` line you need to add to your shell rc.
 
-Preview without installing:
-
-```sh
-man -l target/man/zxcv.1
-```
-
-Install system-wide (paths vary by distribution; this is the common Linux
-location):
+For a system-wide install (visible to all users):
 
 ```sh
-sudo install -Dm644 target/man/zxcv.1            /usr/local/share/man/man1/zxcv.1
-sudo install -Dm644 target/man/zxcv-init.1       /usr/local/share/man/man1/zxcv-init.1
-sudo install -Dm644 target/man/zxcv-config.1     /usr/local/share/man/man1/zxcv-config.1
-sudo install -Dm644 target/man/zxcv-history.1    /usr/local/share/man/man1/zxcv-history.1
-sudo install -Dm644 target/man/zxcv-history-clear.1 /usr/local/share/man/man1/zxcv-history-clear.1
+sudo zxcv install-man --prefix /usr/local
+# Pages go to /usr/local/man/man1/
 sudo mandb 2>/dev/null || true   # refresh index on Linux
 ```
 
-After installation: `man zxcv`, `man zxcv-config`, etc.
+Developers can also generate man pages without installing them:
+
+```sh
+cargo run --example gen-man         # writes target/man/*.1
+man -l target/man/zxcv.1
+```
 
 ## Configuration
 
@@ -225,6 +220,18 @@ eval "$(zxcv init bash)"
 bind -x '"\C-x\C-g": zxcv-widget'   # Ctrl-X Ctrl-G — pick any key you like
 ```
 
+### First-run hint
+
+The first time `zxcv` is launched **outside** the shell widget, it prints a
+short setup hint to stderr and waits for Enter before opening the fzf picker.
+This is shown once per machine; a sentinel file at
+`~/.local/state/zxcv/hint-shown` is created to suppress subsequent prints.
+
+If you launch `zxcv` via the widget (any binding installed from `zxcv init`),
+the hint is **never** shown — the widget sets `ZXCV_FROM_WIDGET=1` so `zxcv`
+knows the setup is already done. Delete the sentinel file to see the hint
+again.
+
 ### Safety prompt
 
 When the selected command matches a built-in or user-defined destructive
@@ -254,14 +261,16 @@ files. They are intentionally conservative — `rm -rf ./build` and
 | `zxcv config`          | Open `~/.config/zxcv/config.toml` in `$EDITOR`                    |
 | `zxcv history`         | List history entries (frecency-sorted)                            |
 | `zxcv history clear`   | Delete all history                                                |
+| `zxcv install-man`     | Install man pages under `$XDG_DATA_HOME/man/man1/`                |
 
 ## File locations
 
-| File                              | Purpose                  |
-|-----------------------------------|--------------------------|
-| `~/.config/zxcv/config.toml`      | Configuration            |
-| `~/.local/state/zxcv/history.toml`| Selection history        |
-| `~/.cache/zxcv/llm_cache/`        | Cached LLM responses     |
+| File                              | Purpose                                       |
+|-----------------------------------|-----------------------------------------------|
+| `~/.config/zxcv/config.toml`      | Configuration                                 |
+| `~/.local/state/zxcv/history.toml`| Selection history                             |
+| `~/.local/state/zxcv/hint-shown`  | Sentinel that suppresses the first-run hint   |
+| `~/.cache/zxcv/llm_cache/`        | Cached LLM responses                          |
 
 `XDG_CONFIG_HOME`, `XDG_STATE_HOME`, and `XDG_CACHE_HOME` are respected.
 

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand, ValueEnum};
 
 #[derive(Parser, Debug)]
@@ -41,6 +43,15 @@ pub enum Subcmd {
     History {
         #[command(subcommand)]
         action: Option<HistoryAction>,
+    },
+    /// Install man pages under <prefix>/man/man1/.
+    ///
+    /// Default prefix: $XDG_DATA_HOME (or ~/.local/share). Use --prefix /usr/local
+    /// (with sudo) for a system-wide install at /usr/local/man/man1/.
+    InstallMan {
+        /// Install prefix; pages go under <prefix>/man/man1/.
+        #[arg(long)]
+        prefix: Option<PathBuf>,
     },
 }
 

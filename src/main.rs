@@ -6,6 +6,7 @@ mod debug;
 mod fzf;
 mod history;
 mod init;
+mod install_man;
 mod paths;
 mod providers;
 mod safety;
@@ -84,6 +85,7 @@ fn run_subcommand(cmd: Subcmd) -> Result<()> {
         }
         Subcmd::Config => run_config_edit(),
         Subcmd::History { action } => run_history(action),
+        Subcmd::InstallMan { prefix } => install_man::install(prefix),
     }
 }
 
@@ -142,6 +144,7 @@ fn run_history(action: Option<HistoryAction>) -> Result<()> {
 
 async fn run_interactive(cli: Cli, config: &Config) -> Result<()> {
     fzf::ensure_available()?;
+    show_setup_hint_if_needed();
     let detector = safety::Detector::from_config(&config.safety)?;
 
     let mut history = history::load()?;
@@ -243,6 +246,46 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
     fzf::write_candidates(&mut out, &merged)?;
     out.flush().ok();
     Ok(())
+}
+
+/// Print a one-time setup hint when zxcv is invoked outside the shell widget and the
+/// sentinel flag file does not yet exist. Blocks on Enter so the user sees it before fzf
+/// repaints the terminal.
+fn show_setup_hint_if_needed() {
+    if std::env::var("ZXCV_FROM_WIDGET").is_ok() {
+        return;
+    }
+    let Ok(path) = paths::hint_flag_file() else {
+        return;
+    };
+    if path.exists() {
+        return;
+    }
+    eprintln!(
+        "\
+[zxcv] Tip: for inline command insertion in your shell, add to ~/.zshrc:
+
+       eval \"$(zxcv init zsh)\"
+       bindkey '^[z' zxcv-widget   # Alt+Z
+
+       To enable `man zxcv`, run once:
+
+       zxcv install-man
+
+       This one-time hint is being shown because this is your first run.
+       To see it again, delete: {}
+",
+        path.display()
+    );
+    eprint!("       Press Enter to continue...");
+    io::stderr().flush().ok();
+    let mut buf = String::new();
+    let _ = io::stdin().lock().read_line(&mut buf);
+
+    if let Some(parent) = path.parent() {
+        let _ = fs::create_dir_all(parent);
+    }
+    let _ = fs::write(&path, "shown\n");
 }
 
 fn merge(history: Vec<Candidate>, llm: Vec<Candidate>) -> Vec<Candidate> {
