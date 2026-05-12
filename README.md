@@ -29,16 +29,41 @@ shell-integration widget) so you can review or edit it before pressing Enter.
 
 ## Installation
 
-### From source (recommended for now)
+### Homebrew (macOS / Linuxbrew)
+
+```sh
+brew install kuzukawa/tap/zxcv
+```
+
+### From crates.io
+
+```sh
+cargo install zxcv
+```
+
+The binary is placed in `~/.cargo/bin`; make sure that directory is on your
+`PATH`.
+
+### Prebuilt binary (shell installer)
+
+For macOS / Linux without a Rust toolchain. Installs into `~/.local/bin` by
+default:
+
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf \
+  https://github.com/kuzukawa/zxcv/releases/latest/download/zxcv-installer.sh | sh
+```
+
+Tarballs for each target are also attached to every GitHub Release:
+<https://github.com/kuzukawa/zxcv/releases>.
+
+### From source
 
 ```sh
 git clone https://github.com/kuzukawa/zxcv.git
 cd zxcv
 cargo install --path .
 ```
-
-`cargo install` places the `zxcv` binary in `~/.cargo/bin`. Make sure that
-directory is on your `PATH`.
 
 ### Build without installing
 
