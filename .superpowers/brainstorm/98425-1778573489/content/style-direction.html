@@ -1,0 +1,55 @@
+<h2>Which visual style fits zxcv?</h2>
+<p class="subtitle">Pick the direction that best attracts developers to a CLI tool</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="terminal" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#0d1117;padding:20px;font-family:monospace;border-radius:8px 8px 0 0;">
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <div style="width:12px;height:12px;border-radius:50%;background:#ff5f57;"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#febc2e;"></div>
+        <div style="width:12px;height:12px;border-radius:50%;background:#28c840;"></div>
+      </div>
+      <div style="color:#8b949e;font-size:11px;">$ <span style="color:#58a6ff;">list files modified in the last hour</span></div>
+      <div style="color:#3fb950;font-size:11px;margin-top:6px;">▶ find . -mmin -60 -type f<span style="animation:blink 1s infinite;color:#e6edf3;">█</span></div>
+    </div>
+    <div class="card-body">
+      <h3>Terminal Dark</h3>
+      <p>Hacker aesthetic. Dark background, monospace font, glowing green output. Speaks directly to CLI users.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="minimal" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:#ffffff;padding:20px;border-radius:8px 8px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div style="background:#f3f4f6;border-radius:8px;padding:8px 14px;font-size:13px;color:#374151;font-family:sans-serif;">find modified files</div>
+        <div style="font-size:22px;color:#6366f1;">→</div>
+        <div style="background:#1e1e2e;border-radius:8px;padding:8px 14px;font-size:11px;color:#a6e3a1;font-family:monospace;">find . -mmin -60</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Modern Minimal</h3>
+      <p>Clean transformation metaphor. Natural language pill → code pill. Readable, professional, concept-first.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="illustrated" onclick="toggleSelect(this)">
+    <div class="card-image" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);padding:20px;border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;min-height:100px;">
+      <div style="text-align:center;">
+        <div style="font-size:32px;">💬</div>
+        <div style="color:#e94560;font-size:18px;margin:4px 0;">↓</div>
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:4px 12px;font-family:monospace;font-size:12px;color:#00ff88;">$ find . -mmin -60</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>Illustrated Conceptual</h3>
+      <p>Speech bubble transforming into a terminal command. More expressive, works well as a standalone icon mark.</p>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .card-image { min-height: 120px; display:flex; flex-direction:column; justify-content:center; }
+</style>
