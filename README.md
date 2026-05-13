@@ -7,7 +7,7 @@
 [![Rust](https://img.shields.io/badge/rust-%23E05D44.svg?style=for-the-badge&logo=rust&logoColor=white)](https://rust-lang.org/)
 [![FZF](https://img.shields.io/badge/fzf-%23ED417D.svg?style=for-the-badge&logo=fzf&logoColor=white)](https://github.com/junegunn/fzf)
 
-<img src="assets/icon.svg" alt="zxcv icon" width="320" />
+<img src="docs/assets/logo.svg" alt="zxcv icon" width="320" />
 
 </div>
 
@@ -36,6 +36,7 @@ shell-integration widget) so you can review or edit it before pressing Enter.
   - [Shell integration](#shell-integration)
     - [zsh](#zsh)
     - [bash](#bash)
+  - [First-run hint](#first-run-hint)
   - [Safety prompt](#safety-prompt)
 - [Subcommands](#subcommands)
 - [File locations](#file-locations)

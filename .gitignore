@@ -2,3 +2,6 @@
 .claude/
 context/
 
+# Exclude Superpowers skill artifacts
+docs/superpowers
+.superpowers
