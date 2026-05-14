@@ -150,11 +150,7 @@ async fn run_interactive(cli: Cli, config: &Config) -> Result<()> {
 
     let mut history = history::load()?;
     let initial_query = cli.query.as_deref().unwrap_or("");
-    let history_candidates: Vec<Candidate> = history::sorted_by_frecency(&history)
-        .iter()
-        .map(|e| e.to_candidate())
-        .filter(|c| !c.command.starts_with("[zxcv"))
-        .collect();
+    let history_candidates: Vec<Candidate> = history::candidates_or_placeholder(&history);
 
     let Some(selected) = fzf::pick(initial_query, &history_candidates)? else {
         // user cancelled
@@ -197,11 +193,7 @@ fn confirm_dangerous(command: &str, matched: &[String]) -> Result<bool> {
 
 fn run_history_only() -> Result<()> {
     let history = history::load()?;
-    let candidates: Vec<Candidate> = history::sorted_by_frecency(&history)
-        .iter()
-        .map(|e| e.to_candidate())
-        .filter(|c| !c.command.starts_with("[zxcv"))
-        .collect();
+    let candidates: Vec<Candidate> = history::candidates_or_placeholder(&history);
     let stdout = io::stdout();
     let mut out = stdout.lock();
     fzf::write_candidates(&mut out, &candidates)?;
@@ -214,11 +206,7 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
     debug::log(format!("run_internal: query={query:?}"));
 
     let history = history::load()?;
-    let history_candidates: Vec<Candidate> = history::sorted_by_frecency(&history)
-        .iter()
-        .map(|e| e.to_candidate())
-        .filter(|c| !c.command.starts_with("[zxcv"))
-        .collect();
+    let history_candidates: Vec<Candidate> = history::candidates_or_placeholder(&history);
     debug::log(format!(
         "run_internal: history_candidates={}",
         history_candidates.len()
