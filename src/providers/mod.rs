@@ -53,7 +53,7 @@ impl Provider {
 
     pub fn default_model(self) -> &'static str {
         match self {
-            Self::Anthropic => "claude-sonnet-4-6",
+            Self::Anthropic => "claude-haiku-4-5",
             Self::OpenAI => "gpt-5",
             Self::Ollama => "llama3",
             Self::Gemini => "gemini-2.5-flash",

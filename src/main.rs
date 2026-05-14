@@ -30,7 +30,7 @@ const DEFAULT_CONFIG_TEMPLATE: &str = r#"# zxcv configuration
 # provider = "anthropic"   # anthropic | openai | ollama | gemini
 
 # [providers.anthropic]
-# model = "claude-sonnet-4-6"
+# model = "claude-haiku-4-5"
 # api_key = "sk-ant-..."   # or set ANTHROPIC_API_KEY env
 
 # [providers.openai]
