@@ -11,7 +11,6 @@ mod paths;
 mod providers;
 mod safety;
 
-use std::collections::HashSet;
 use std::fs;
 use std::io::{self, BufRead, Write};
 use std::process::Command;
@@ -70,7 +69,9 @@ async fn main() -> Result<()> {
         }
     ));
 
-    if cli.internal {
+    if cli.history_only {
+        run_history_only()
+    } else if cli.internal {
         run_internal(cli, settings).await
     } else {
         run_interactive(cli, &config).await
@@ -152,12 +153,18 @@ async fn run_interactive(cli: Cli, config: &Config) -> Result<()> {
     let history_candidates: Vec<Candidate> = history::sorted_by_frecency(&history)
         .iter()
         .map(|e| e.to_candidate())
+        .filter(|c| !c.command.starts_with("[zxcv"))
         .collect();
 
     let Some(selected) = fzf::pick(initial_query, &history_candidates)? else {
         // user cancelled
         return Ok(());
     };
+
+    if selected.command.starts_with("[zxcv") {
+        // user selected an info/error message injected by zxcv itself — ignore
+        return Ok(());
+    }
 
     if detector.is_dangerous(&selected.command) {
         let matched = detector.matched(&selected.command);
@@ -188,6 +195,20 @@ fn confirm_dangerous(command: &str, matched: &[String]) -> Result<bool> {
     Ok(line.trim().eq_ignore_ascii_case("y"))
 }
 
+fn run_history_only() -> Result<()> {
+    let history = history::load()?;
+    let candidates: Vec<Candidate> = history::sorted_by_frecency(&history)
+        .iter()
+        .map(|e| e.to_candidate())
+        .filter(|c| !c.command.starts_with("[zxcv"))
+        .collect();
+    let stdout = io::stdout();
+    let mut out = stdout.lock();
+    fzf::write_candidates(&mut out, &candidates)?;
+    out.flush().ok();
+    Ok(())
+}
+
 async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
     let query = cli.query.unwrap_or_default();
     debug::log(format!("run_internal: query={query:?}"));
@@ -196,21 +217,25 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
     let history_candidates: Vec<Candidate> = history::sorted_by_frecency(&history)
         .iter()
         .map(|e| e.to_candidate())
+        .filter(|c| !c.command.starts_with("[zxcv"))
         .collect();
     debug::log(format!(
         "run_internal: history_candidates={}",
         history_candidates.len()
     ));
 
-    let llm_candidates = if query.trim().is_empty() {
+    if query.trim().is_empty() {
         debug::log("run_internal: query is empty, skipping LLM call");
         let _ = writeln!(
             io::stdout(),
             "[zxcv] Type a description first, then press Ctrl-G to generate candidates.\t\
              Type a description first, then press Ctrl-G to generate candidates."
         );
-        Vec::new()
-    } else {
+        io::stdout().flush().ok();
+        return Ok(());
+    }
+
+    let llm_candidates = {
         let provider_id = settings.provider.id();
         match cache::load(provider_id, &settings.model, &query)? {
             Some(c) => {
@@ -244,14 +269,23 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
         }
     };
 
-    let merged = merge(history_candidates, llm_candidates);
-    debug::log(format!(
-        "run_internal: writing {} merged candidates to stdout",
-        merged.len()
-    ));
     let stdout = io::stdout();
     let mut out = stdout.lock();
-    fzf::write_candidates(&mut out, &merged)?;
+    if llm_candidates.is_empty() {
+        // LLM failed (error already written to stdout); show history so list isn't blank
+        debug::log(format!(
+            "run_internal: LLM empty, writing {} history candidates",
+            history_candidates.len()
+        ));
+        fzf::write_candidates(&mut out, &history_candidates)?;
+    } else {
+        // LLM succeeded: show only fresh candidates, not old history
+        debug::log(format!(
+            "run_internal: writing {} LLM candidates",
+            llm_candidates.len()
+        ));
+        fzf::write_candidates(&mut out, &llm_candidates)?;
+    }
     out.flush().ok();
     Ok(())
 }
@@ -294,15 +328,4 @@ fn show_setup_hint_if_needed() {
         let _ = fs::create_dir_all(parent);
     }
     let _ = fs::write(&path, "shown\n");
-}
-
-fn merge(history: Vec<Candidate>, llm: Vec<Candidate>) -> Vec<Candidate> {
-    let mut seen: HashSet<String> = history.iter().map(|c| c.command.clone()).collect();
-    let mut result = history;
-    for c in llm {
-        if seen.insert(c.command.clone()) {
-            result.push(c);
-        }
-    }
-    result
 }
