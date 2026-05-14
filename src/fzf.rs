@@ -7,9 +7,9 @@ use crate::candidate::Candidate;
 use crate::debug;
 
 const HEADER_HISTORY: &str =
-    "Showing: selection history (frecency-sorted)  |  Enter: pick  |  Ctrl-G: generate with LLM  |  Esc: quit";
+    "MODE: HISTORY (frecency)  |  Enter: pick  |  Ctrl-G: generate with LLM  |  Esc: quit";
 const HEADER_LLM: &str =
-    "Showing: LLM candidates  |  Enter: pick  |  Ctrl-C: back to history  |  Esc: quit";
+    "MODE: LLM CANDIDATES  |  Enter: pick  |  Ctrl-C: back to history  |  Esc: quit";
 
 pub fn ensure_available() -> Result<()> {
     let status = Command::new("fzf")
