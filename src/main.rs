@@ -228,7 +228,10 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
                     }
                     Err(e) => {
                         debug::log(format!("run_internal: LLM call failed: {e:#}"));
-                        eprintln!("zxcv: LLM call failed: {e}");
+                        let full = e.to_string().replace('\t', " ");
+                        let first_line = full.lines().next().unwrap_or("unknown error");
+                        let preview = full.replace('\n', " | ");
+                        let _ = writeln!(io::stdout(), "[zxcv error] {first_line}\t{preview}");
                         Vec::new()
                     }
                 }
