@@ -204,6 +204,11 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
 
     let llm_candidates = if query.trim().is_empty() {
         debug::log("run_internal: query is empty, skipping LLM call");
+        let _ = writeln!(
+            io::stdout(),
+            "[zxcv] Type a description first, then press Ctrl-G to generate candidates.\t\
+             Type a description first, then press Ctrl-G to generate candidates."
+        );
         Vec::new()
     } else {
         let provider_id = settings.provider.id();
