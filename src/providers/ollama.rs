@@ -1,4 +1,4 @@
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, anyhow};
 use serde_json::{Value, json};
 
 use crate::candidate::Candidate;
@@ -40,7 +40,12 @@ pub async fn generate(settings: &Settings, query: &str) -> Result<Vec<Candidate>
         .context("failed to parse Ollama response as JSON")?;
 
     if !status.is_success() {
-        bail!("Ollama API returned {}: {}", status, payload);
+        return Err(super::api_error(
+            "Ollama",
+            status.as_u16(),
+            &payload.to_string(),
+            None,
+        ));
     }
 
     let content = payload

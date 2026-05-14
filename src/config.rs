@@ -45,12 +45,13 @@ pub fn load() -> Result<Config> {
 /// Resolve effective settings from CLI args, env vars, and config file.
 /// Precedence: CLI > env > config > built-in default.
 pub fn resolve(cli: &Cli, config: &Config) -> Result<Settings> {
-    let provider_str = cli
+    let explicit = cli
         .provider
         .clone()
         .or_else(|| std::env::var("ZXCV_PROVIDER").ok())
-        .or_else(|| config.provider.clone())
-        .unwrap_or_else(|| "anthropic".into());
+        .or_else(|| config.provider.clone());
+    let provider_explicit = explicit.is_some();
+    let provider_str = explicit.unwrap_or_else(|| "anthropic".into());
     let provider = Provider::parse(&provider_str)?;
 
     let entry = config
@@ -75,6 +76,7 @@ pub fn resolve(cli: &Cli, config: &Config) -> Result<Settings> {
 
     Ok(Settings {
         provider,
+        provider_explicit,
         api_key,
         model,
         endpoint,

@@ -74,6 +74,7 @@ impl Provider {
 #[derive(Debug, Clone)]
 pub struct Settings {
     pub provider: Provider,
+    pub provider_explicit: bool,
     pub api_key: Option<String>,
     pub model: String,
     pub endpoint: Option<String>,
@@ -90,16 +91,38 @@ pub async fn generate(settings: &Settings, query: &str) -> Result<Vec<Candidate>
 
 pub fn require_api_key(settings: &Settings) -> Result<&str> {
     settings.api_key.as_deref().ok_or_else(|| {
-        let env = settings
-            .provider
-            .api_key_env()
-            .unwrap_or("<no env var defined>");
-        anyhow!(
-            "API key for provider {} is not set (env: {})",
-            settings.provider.id(),
-            env
-        )
+        if !settings.provider_explicit {
+            return anyhow!(
+                "No provider configured.\n  \
+                 Add `provider` and an API key to ~/.config/zxcv/config.toml.\n  \
+                 Run `zxcv config` to get started."
+            );
+        }
+        let provider = settings.provider.id();
+        match settings.provider.api_key_env() {
+            Some(env) => anyhow!(
+                "No API key for `{provider}`.\n  \
+                 Set {env} or add `api_key` under [providers.{provider}] in ~/.config/zxcv/config.toml.\n  \
+                 Run `zxcv config` to edit."
+            ),
+            None => anyhow!("No API key configured for `{provider}`."),
+        }
     })
+}
+
+pub fn api_error(provider: &str, status: u16, payload: &str, api_key_env: Option<&str>) -> anyhow::Error {
+    let hint = match status {
+        401 | 403 => {
+            let key_hint = api_key_env
+                .map(|e| format!(" — check {e}"))
+                .unwrap_or_default();
+            format!(" (invalid or missing API key{key_hint})")
+        }
+        429 => " (rate limit exceeded — try again later)".into(),
+        500..=599 => " (provider server error — try again later)".into(),
+        _ => String::new(),
+    };
+    anyhow!("{provider} API returned {status}{hint}: {payload}")
 }
 
 /// Parse a JSON payload produced by any provider into a Vec<Candidate>.
