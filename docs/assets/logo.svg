@@ -1,0 +1,24 @@
+<svg width="280" height="104" viewBox="0 0 280 104" xmlns="http://www.w3.org/2000/svg">
+  <!-- speech bubble: unified path (body + tail, no seam) -->
+  <path d="M20,10 L80,10 A16,16 0 0 1 96,26 L96,60 A16,16 0 0 1 80,76 L44,76 L14,98 L20,76 A16,16 0 0 1 4,60 L4,26 A16,16 0 0 1 20,10 Z" fill="#ffffff" stroke="#D0D0D0" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- natural language input text -->
+  <text x="50" y="47.5" text-anchor="middle" fill="#5A5A5A" font-family="sans-serif" font-size="12">list all files</text>
+  <!-- arrow shaft -->
+  <line x1="106" y1="43" x2="144" y2="43" stroke="#888888" stroke-width="3.5" stroke-linecap="round"/>
+  <!-- arrowhead -->
+  <polygon points="144,35 160,43 144,51" fill="#888888"/>
+  <!-- terminal block -->
+  <rect x="168" y="6" width="108" height="74" rx="13" fill="#FFFFFF" stroke="#D0D0D0" stroke-width="2.5"/>
+  <!-- window chrome dots: macOS traffic lights -->
+  <circle cx="184" cy="22" r="3.5" fill="#FF5F57"/>
+  <circle cx="195" cy="22" r="3.5" fill="#FEBC2E"/>
+  <circle cx="206" cy="22" r="3.5" fill="#28C840"/>
+  <!-- chrome divider -->
+  <line x1="168" y1="32" x2="276" y2="32" stroke="#E0E0E0" stroke-width="1"/>
+  <!-- prompt -->
+  <text x="180" y="55" fill="#1C1C1C" font-family="'SF Mono','Fira Code','Cascadia Code',monospace" font-size="15" font-weight="bold">$</text>
+  <!-- command -->
+  <text x="196" y="55" fill="#1C1C1C" font-family="'SF Mono','Fira Code','Cascadia Code',monospace" font-size="12">ls -la</text>
+  <!-- cursor block -->
+  <rect x="240" y="43" width="9" height="15" rx="2" fill="#1C1C1C" opacity="0.75"/>
+</svg>

@@ -1,10 +1,50 @@
+<div align="center">
+
 # zxcv
+
+##### Fly on your terminal, without the stress of memorizing commands.
+
+[![Rust](https://img.shields.io/badge/rust-%23E05D44.svg?style=for-the-badge&logo=rust&logoColor=white)](https://rust-lang.org/)
+[![FZF](https://img.shields.io/badge/fzf-%23ED417D.svg?style=for-the-badge&logo=fzf&logoColor=white)](https://github.com/junegunn/fzf)
+
+<img src="docs/assets/logo.svg" alt="zxcv icon" width="320" />
+
+</div>
 
 `zxcv` is a CLI tool that turns a natural-language description into one-liner
 shell commands using an LLM. It opens an `fzf` picker pre-loaded with your
 selection history and lets you pull fresh candidates from the LLM on demand.
 Selecting a candidate inserts it into your shell's command-line buffer (via a
 shell-integration widget) so you can review or edit it before pressing Enter.
+
+<u>**TOC**</u>
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+  - [Homebrew (macOS / Linuxbrew)](#homebrew-macos--linuxbrew)
+  - [From crates.io](#from-cratesio)
+  - [Prebuilt binary (shell installer)](#prebuilt-binary-shell-installer)
+  - [From source](#from-source)
+  - [Build without installing](#build-without-installing)
+  - [Man pages](#man-pages)
+- [Configuration](#configuration)
+  - [Example config](#example-config)
+  - [Setting precedence](#setting-precedence)
+  - [Environment variables](#environment-variables)
+- [Usage](#usage)
+  - [Direct invocation](#direct-invocation)
+  - [Shell integration](#shell-integration)
+    - [zsh](#zsh)
+    - [bash](#bash)
+  - [First-run hint](#first-run-hint)
+  - [Safety prompt](#safety-prompt)
+- [Subcommands](#subcommands)
+- [File locations](#file-locations)
+- [Default models](#default-models)
+- [Development](#development)
+  - [Debugging](#debugging)
+- [License](#license)
+
 
 ## Features
 
