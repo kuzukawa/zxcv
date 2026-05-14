@@ -44,7 +44,6 @@ shell-integration widget) so you can review or edit it before pressing Enter.
 - [File locations](#file-locations)
 - [Default models](#default-models)
 - [Development](#development)
-  - [Debugging](#debugging)
 - [License](#license)
 
 
@@ -160,6 +159,10 @@ brew uninstall zxcv
 rm -rf ~/.config/zxcv                   # config
 rm -rf ~/.local/state/zxcv              # history + first-run sentinel
 rm -rf ~/.cache/zxcv                    # LLM response cache
+
+```
+
+```sh
 rm -f  ~/.local/share/man/man1/zxcv*.1  # man pages (if installed)
 ```
 
@@ -349,23 +352,7 @@ Override with `--model <name>` or `ZXCV_MODEL`.
 
 ## Development
 
-```sh
-cargo build              # debug
-cargo build --release    # optimized
-cargo test               # unit tests (safety module)
-cargo clippy --all-targets -- -D warnings
-```
-
-### Debugging
-
-Set `ZXCV_DEBUG=1` to write a verbose log to `/tmp/zxcv-debug.log` (override
-the path with `ZXCV_DEBUG_LOG`). Useful for inspecting LLM calls and fzf
-plumbing.
-
-```sh
-ZXCV_DEBUG=1 zxcv "your query"
-tail -f /tmp/zxcv-debug.log
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for build commands, debugging, and contribution guidelines.
 
 ## License
 
