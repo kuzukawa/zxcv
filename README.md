@@ -45,6 +45,7 @@ shell-integration widget) so you can review or edit it before pressing Enter.
 - [Default models](#default-models)
 - [Development](#development)
 - [License](#license)
+- [Hit a star if you like it!](#hit-a-star-if-you-like-it)
 
 
 ## Features
@@ -357,3 +358,18 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for build commands, debugging, and contri
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Hit a star if you like it!
+
+We are developing this project as a free, open-source tool to enhance your CLI experience. Your support means a lot to us.  
+Please consider starring the repository if you find it useful! Your stars motivate us to keep improving and growing this project.
+
+Additionally, your feedback is highly valuable. Feel free to open an Issue to share your thoughts. 🧠 
+
+<a href="https://www.star-history.com/?repos=kuzukawa%2Fzxcv&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=kuzukawa/zxcv&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=kuzukawa/zxcv&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=kuzukawa/zxcv&type=date&legend=top-left" />
+ </picture>
+</a>
