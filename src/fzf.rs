@@ -6,7 +6,10 @@ use anyhow::{Context, Result, anyhow, bail};
 use crate::candidate::Candidate;
 use crate::debug;
 
-const FZF_HEADER: &str = "Enter: select  |  Ctrl-G: generate with LLM  |  Ctrl-C: cancel / back to history";
+const HEADER_HISTORY: &str =
+    "Showing: selection history (frecency-sorted)  |  Enter: pick  |  Ctrl-G: generate with LLM  |  Esc: quit";
+const HEADER_LLM: &str =
+    "Showing: LLM candidates  |  Enter: pick  |  Ctrl-C: back to history  |  Esc: quit";
 
 pub fn ensure_available() -> Result<()> {
     let status = Command::new("fzf")
@@ -33,8 +36,12 @@ pub fn pick(initial_query: &str, candidates: &[Candidate]) -> Result<Option<Cand
     // clear-query removes the current input so fzf's filter doesn't hide the reloaded rows
     // (whose English columns may not fuzzy-match a Japanese query).
     // ctrl-c cancels any ongoing LLM reload and restores history without exiting fzf.
-    let bind_llm = format!("ctrl-g:reload({reload_cmd})+clear-query");
-    let bind_cancel = format!("ctrl-c:reload({history_cmd})");
+    let bind_llm = format!(
+        "ctrl-g:reload({reload_cmd})+clear-query+change-header({HEADER_LLM})"
+    );
+    let bind_cancel = format!(
+        "ctrl-c:reload({history_cmd})+change-header({HEADER_HISTORY})"
+    );
 
     let mut cmd = Command::new("fzf");
     cmd.arg("--delimiter=\t")
@@ -44,7 +51,7 @@ pub fn pick(initial_query: &str, candidates: &[Candidate]) -> Result<Option<Cand
         .arg(format!("--bind={bind_llm}"))
         .arg(format!("--bind={bind_cancel}"))
         .arg(format!("--query={initial_query}"))
-        .arg(format!("--header={FZF_HEADER}"))
+        .arg(format!("--header={HEADER_HISTORY}"))
         .arg("--no-multi")
         .arg("--ansi")
         .stdin(Stdio::piped())
