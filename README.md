@@ -186,7 +186,7 @@ to create the file from a template and open it in `$VISUAL` / `$EDITOR`.
 provider = "anthropic"   # anthropic | openai | ollama | gemini
 
 [providers.anthropic]
-model = "claude-sonnet-4-6"
+model = "claude-haiku-4-5"
 # api_key = "sk-ant-..."   # prefer ANTHROPIC_API_KEY env var
 
 [providers.openai]
@@ -347,7 +347,7 @@ files. They are intentionally conservative — `rm -rf ./build` and
 
 | Provider  | Default model         |
 |-----------|-----------------------|
-| Anthropic | `claude-sonnet-4-6`   |
+| Anthropic | `claude-haiku-4-5` |
 | OpenAI    | `gpt-5`               |
 | Gemini    | `gemini-2.5-flash`    |
 | Ollama    | `llama3`              |
