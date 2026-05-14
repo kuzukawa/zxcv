@@ -23,7 +23,7 @@ Rust 1.86+, edition 2024. `fzf` must be on PATH to actually exercise the picker.
 
 | Mode               | How entered                              | Output                                               |
 |--------------------|------------------------------------------|------------------------------------------------------|
-| Interactive (root) | `zxcv [QUERY]`                            | Spawns `fzf`, prints selected command to stdout      |
+| Interactive (root) | `zxcv [QUERY]`                            | Spawns `fzf`, prints selection to stdout; outside widget it also copies to clipboard |
 | `--internal`       | Invoked by fzf's `ctrl-g:reload(...)` bind | Emits TSV candidates (cache hit or LLM call)         |
 | `--history-only`   | Invoked by fzf's `ctrl-c:reload(...)` bind | Emits TSV history candidates, no LLM call            |
 | Subcommands        | `init`, `config`, `history`, `install-man` | Side-effects only                                    |

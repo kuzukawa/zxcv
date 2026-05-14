@@ -231,9 +231,12 @@ instantaneous.
 
 ### Shell integration
 
-The picker by itself only prints the selected command to stdout. To have it
-land **in your shell's command-line buffer** (not executed — you still press
-Enter yourself), install the shell widget:
+When launched directly in an interactive terminal (not via shell widget),
+`zxcv` prints the selected command to stdout and also copies it to your system
+clipboard.
+
+To insert directly into the latest prompt line, install and use the shell
+widget:
 
 #### zsh
 

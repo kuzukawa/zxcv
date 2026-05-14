@@ -1,6 +1,7 @@
 mod cache;
 mod candidate;
 mod cli;
+mod clipboard;
 mod config;
 mod debug;
 mod fzf;
@@ -173,8 +174,29 @@ async fn run_interactive(cli: Cli, config: &Config) -> Result<()> {
     history::record(&mut history, initial_query, &selected);
     history::save(&history)?;
 
-    println!("{}", selected.command);
+    emit_selected_command(&selected.command);
     Ok(())
+}
+
+fn emit_selected_command(command: &str) {
+    let from_widget = std::env::var_os("ZXCV_FROM_WIDGET").is_some();
+
+    println!("{command}");
+
+    if from_widget {
+        return;
+    }
+
+    match clipboard::copy(command) {
+        Ok(backend) => eprintln!("[zxcv] Copied selected command to clipboard via `{backend}`."),
+        Err(e) => {
+            debug::log(format!("clipboard copy failed: {e:#}"));
+            eprintln!("[zxcv] Could not copy selected command to clipboard.");
+        }
+    }
+    eprintln!(
+        "[zxcv] Tip: if you invoke zxcv from your shell shortcut (`zxcv-widget`), the result is inserted directly into the latest prompt line."
+    );
 }
 
 fn confirm_dangerous(command: &str, matched: &[String]) -> Result<bool> {
@@ -237,10 +259,7 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
                 ));
                 match providers::generate(&settings, &query).await {
                     Ok(c) => {
-                        debug::log(format!(
-                            "run_internal: LLM returned {} candidates",
-                            c.len()
-                        ));
+                        debug::log(format!("run_internal: LLM returned {} candidates", c.len()));
                         cache::save(provider_id, &settings.model, &query, &c)?;
                         c
                     }
