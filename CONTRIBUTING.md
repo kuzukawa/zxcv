@@ -2,6 +2,12 @@
 
 Information for developper.
 
+## Requirements
+
+- **Rust toolchain 1.86+** — install via [rustup](https://rustup.rs/) (brings `cargo`, `clippy`, `rustfmt`)
+- **[`fzf`](https://github.com/junegunn/fzf)** on your `PATH` — required to run and test the picker (recommended: `brew install fzf`)
+- **API key** for at least one provider (Anthropic, OpenAI, or Gemini) — needed for end-to-end LLM testing; Ollama needs only a running local server
+
 ## Development
 
 ```sh
