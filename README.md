@@ -27,6 +27,8 @@ shell-integration widget) so you can review or edit it before pressing Enter.
   - [From source](#from-source)
   - [Build without installing](#build-without-installing)
   - [Man pages](#man-pages)
+- [Uninstallation](#uninstallation)
+  - [Homebrew](#homebrew)
 - [Configuration](#configuration)
   - [Example config](#example-config)
   - [Setting precedence](#setting-precedence)
@@ -143,6 +145,26 @@ Developers can also generate man pages without installing them:
 cargo run --example gen-man         # writes target/man/*.1
 man -l target/man/zxcv.1
 ```
+
+## Uninstallation
+
+### Homebrew
+
+```sh
+brew uninstall zxcv
+```
+
+`brew uninstall` removes only the binary. To also remove user data:
+
+```sh
+rm -rf ~/.config/zxcv                   # config
+rm -rf ~/.local/state/zxcv              # history + first-run sentinel
+rm -rf ~/.cache/zxcv                    # LLM response cache
+rm -f  ~/.local/share/man/man1/zxcv*.1  # man pages (if installed)
+```
+
+> If you customized `XDG_CONFIG_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, or
+> `XDG_DATA_HOME`, substitute those paths above.
 
 ## Configuration
 
