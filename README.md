@@ -27,6 +27,8 @@ shell-integration widget) so you can review or edit it before pressing Enter.
   - [From source](#from-source)
   - [Build without installing](#build-without-installing)
   - [Man pages](#man-pages)
+- [Uninstallation](#uninstallation)
+  - [Homebrew](#homebrew)
 - [Configuration](#configuration)
   - [Example config](#example-config)
   - [Setting precedence](#setting-precedence)
@@ -42,8 +44,8 @@ shell-integration widget) so you can review or edit it before pressing Enter.
 - [File locations](#file-locations)
 - [Default models](#default-models)
 - [Development](#development)
-  - [Debugging](#debugging)
 - [License](#license)
+- [Hit a star if you like it!](#hit-a-star-if-you-like-it)
 
 
 ## Features
@@ -143,6 +145,30 @@ Developers can also generate man pages without installing them:
 cargo run --example gen-man         # writes target/man/*.1
 man -l target/man/zxcv.1
 ```
+
+## Uninstallation
+
+### Homebrew
+
+```sh
+brew uninstall zxcv
+```
+
+`brew uninstall` removes only the binary. To also remove user data:
+
+```sh
+rm -rf ~/.config/zxcv                   # config
+rm -rf ~/.local/state/zxcv              # history + first-run sentinel
+rm -rf ~/.cache/zxcv                    # LLM response cache
+
+```
+
+```sh
+rm -f  ~/.local/share/man/man1/zxcv*.1  # man pages (if installed)
+```
+
+> If you customized `XDG_CONFIG_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`, or
+> `XDG_DATA_HOME`, substitute those paths above.
 
 ## Configuration
 
@@ -327,24 +353,23 @@ Override with `--model <name>` or `ZXCV_MODEL`.
 
 ## Development
 
-```sh
-cargo build              # debug
-cargo build --release    # optimized
-cargo test               # unit tests (safety module)
-cargo clippy --all-targets -- -D warnings
-```
-
-### Debugging
-
-Set `ZXCV_DEBUG=1` to write a verbose log to `/tmp/zxcv-debug.log` (override
-the path with `ZXCV_DEBUG_LOG`). Useful for inspecting LLM calls and fzf
-plumbing.
-
-```sh
-ZXCV_DEBUG=1 zxcv "your query"
-tail -f /tmp/zxcv-debug.log
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md) for build commands, debugging, and contribution guidelines.
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Hit a star if you like it!
+
+We are developing this project as a free, open-source tool to enhance your CLI experience. Your support means a lot to us.  
+Please consider starring the repository if you find it useful! Your stars motivate us to keep improving and growing this project.
+
+Additionally, your feedback is highly valuable. Feel free to open an Issue to share your thoughts. 🧠 
+
+<a href="https://www.star-history.com/?repos=kuzukawa%2Fzxcv&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=kuzukawa/zxcv&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=kuzukawa/zxcv&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=kuzukawa/zxcv&type=date&legend=top-left" />
+ </picture>
+</a>

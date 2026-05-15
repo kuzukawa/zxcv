@@ -1,7 +1,13 @@
-/target
+# Claude Code cahces
 .claude/
 context/
 
 # Exclude Superpowers skill artifacts
 docs/superpowers
 .superpowers
+
+# Personal docs
+TODO.md
+
+# Rust build artifacts
+/target
