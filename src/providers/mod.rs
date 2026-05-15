@@ -10,7 +10,7 @@ use crate::candidate::Candidate;
 
 pub const MAX_CANDIDATES: usize = 5;
 
-pub const SYSTEM_PROMPT: &str = "\
+pub const BASE_SYSTEM_PROMPT: &str = "\
 You generate shell one-liner commands for macOS and Linux.
 Given a natural-language request (which may be in Japanese), return up to 5 candidate one-liner commands that fulfill it.
 
@@ -19,6 +19,62 @@ Rules:
 - Prefer portable POSIX / GNU / BSD-compatible commands. Tools that ship on a typical macOS or Linux system are preferred over uncommon ones.
 - The `description` field must be written in English and concisely explain what the command does.
 - Order candidates from most to least likely to be what the user wants.";
+
+#[derive(Debug, Clone, Copy)]
+pub enum CommandMode {
+    InstalledOnly,
+    AllowUninstalled,
+}
+
+#[derive(Debug, Clone)]
+pub struct GenerationContext {
+    pub mode: CommandMode,
+    pub installed_commands: Vec<String>,
+    pub omitted_installed_count: usize,
+}
+
+pub fn build_system_prompt(ctx: &GenerationContext) -> String {
+    let mut prompt = String::from(BASE_SYSTEM_PROMPT);
+    prompt.push_str("\n\nDetected installed commands on this machine:\n");
+    if ctx.installed_commands.is_empty() {
+        prompt.push_str("- (none detected)\n");
+    } else {
+        prompt.push_str("- ");
+        prompt.push_str(&ctx.installed_commands.join(", "));
+        prompt.push('\n');
+        if ctx.omitted_installed_count > 0 {
+            prompt.push_str(&format!(
+                "- (plus {} additional installed commands omitted from this list)\n",
+                ctx.omitted_installed_count
+            ));
+        }
+    }
+
+    match ctx.mode {
+        CommandMode::InstalledOnly => {
+            prompt.push_str(
+                "\
+\nMode: installed-only.
+- For every candidate, all non-shell-builtin commands must be from the installed command list above.
+- Do not use tools that are not on that installed list.
+- If perfect coverage is not possible, still return best-effort installed-only candidates.
+",
+            );
+        }
+        CommandMode::AllowUninstalled => {
+            prompt.push_str(
+                "\
+\nMode: fallback-allow-uninstalled.
+- Prefer installed commands when possible.
+- If installed commands cannot satisfy the request well, you may include uninstalled tools.
+- When a candidate uses uninstalled tools, include `Requires install: <tool1>, <tool2>.` in the description.
+",
+            );
+        }
+    }
+
+    prompt
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -79,12 +135,16 @@ pub struct Settings {
     pub endpoint: Option<String>,
 }
 
-pub async fn generate(settings: &Settings, query: &str) -> Result<Vec<Candidate>> {
+pub async fn generate(
+    settings: &Settings,
+    query: &str,
+    context: &GenerationContext,
+) -> Result<Vec<Candidate>> {
     match settings.provider {
-        Provider::Anthropic => anthropic::generate(settings, query).await,
-        Provider::OpenAI => openai::generate(settings, query).await,
-        Provider::Ollama => ollama::generate(settings, query).await,
-        Provider::Gemini => gemini::generate(settings, query).await,
+        Provider::Anthropic => anthropic::generate(settings, query, context).await,
+        Provider::OpenAI => openai::generate(settings, query, context).await,
+        Provider::Ollama => ollama::generate(settings, query, context).await,
+        Provider::Gemini => gemini::generate(settings, query, context).await,
     }
 }
 

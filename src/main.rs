@@ -1,3 +1,4 @@
+mod availability;
 mod cache;
 mod candidate;
 mod cli;
@@ -22,7 +23,7 @@ use clap::Parser;
 use crate::candidate::Candidate;
 use crate::cli::{Cli, HistoryAction, Subcmd};
 use crate::config::Config;
-use crate::providers::Settings;
+use crate::providers::{CommandMode, GenerationContext, Settings};
 
 const DEFAULT_CONFIG_TEMPLATE: &str = r#"# zxcv configuration
 # Precedence: CLI args > environment variables > this file > built-in defaults
@@ -206,33 +207,48 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
         debug::log("run_internal: query is empty, skipping LLM call");
         Vec::new()
     } else {
+        let inventory = availability::Inventory::detect()?;
+        debug::log(format!(
+            "run_internal: detected installed commands: {} (omitted from prompt list: {})",
+            inventory.installed_count(),
+            inventory.omitted_prompt_count()
+        ));
+
         let provider_id = settings.provider.id();
-        match cache::load(provider_id, &settings.model, &query)? {
-            Some(c) => {
-                debug::log(format!("run_internal: cache hit, {} candidates", c.len()));
-                c
-            }
-            None => {
-                debug::log(format!(
-                    "run_internal: calling {} (model={})",
-                    provider_id, settings.model
-                ));
-                match providers::generate(&settings, &query).await {
-                    Ok(c) => {
-                        debug::log(format!(
-                            "run_internal: LLM returned {} candidates",
-                            c.len()
-                        ));
-                        cache::save(provider_id, &settings.model, &query, &c)?;
-                        c
-                    }
-                    Err(e) => {
-                        debug::log(format!("run_internal: LLM call failed: {e:#}"));
-                        eprintln!("zxcv: LLM call failed: {e}");
-                        Vec::new()
-                    }
-                }
-            }
+        let installed_ctx = GenerationContext {
+            mode: CommandMode::InstalledOnly,
+            installed_commands: inventory.prompt_commands().to_vec(),
+            omitted_installed_count: inventory.omitted_prompt_count(),
+        };
+        let installed_key = format!("mode=installed-only|installed={}", inventory.fingerprint());
+
+        let installed_candidates = call_llm_with_cache(
+            &settings,
+            provider_id,
+            &query,
+            &installed_ctx,
+            &installed_key,
+        )
+        .await?;
+
+        let usable_installed = keep_usable_candidates(installed_candidates, &inventory);
+        if usable_installed.is_empty() {
+            debug::log("run_internal: no usable installed-only candidates, entering fallback mode");
+            let fallback_ctx = GenerationContext {
+                mode: CommandMode::AllowUninstalled,
+                installed_commands: inventory.prompt_commands().to_vec(),
+                omitted_installed_count: inventory.omitted_prompt_count(),
+            };
+            let fallback_key = format!(
+                "mode=allow-uninstalled|installed={}",
+                inventory.fingerprint()
+            );
+            let fallback =
+                call_llm_with_cache(&settings, provider_id, &query, &fallback_ctx, &fallback_key)
+                    .await?;
+            annotate_requires_install(fallback, &inventory)
+        } else {
+            usable_installed
         }
     };
 
@@ -246,6 +262,76 @@ async fn run_internal(cli: Cli, settings: Settings) -> Result<()> {
     fzf::write_candidates(&mut out, &merged)?;
     out.flush().ok();
     Ok(())
+}
+
+async fn call_llm_with_cache(
+    settings: &Settings,
+    provider_id: &str,
+    query: &str,
+    generation_ctx: &GenerationContext,
+    cache_key: &str,
+) -> Result<Vec<Candidate>> {
+    match cache::load(provider_id, &settings.model, query, cache_key)? {
+        Some(c) => {
+            debug::log(format!("run_internal: cache hit, {} candidates", c.len()));
+            Ok(c)
+        }
+        None => {
+            debug::log(format!(
+                "run_internal: calling {} (model={} mode={:?})",
+                provider_id, settings.model, generation_ctx.mode
+            ));
+            match providers::generate(settings, query, generation_ctx).await {
+                Ok(c) => {
+                    debug::log(format!("run_internal: LLM returned {} candidates", c.len()));
+                    cache::save(provider_id, &settings.model, query, cache_key, &c)?;
+                    Ok(c)
+                }
+                Err(e) => {
+                    debug::log(format!("run_internal: LLM call failed: {e:#}"));
+                    let full = e.to_string().replace('\t', " ");
+                    let first_line = full.lines().next().unwrap_or("unknown error");
+                    let preview = full.replace('\n', " | ");
+                    let _ = writeln!(io::stdout(), "[zxcv error] {first_line}\t{preview}");
+                    Ok(Vec::new())
+                }
+            }
+        }
+    }
+}
+
+fn keep_usable_candidates(
+    candidates: Vec<Candidate>,
+    inventory: &availability::Inventory,
+) -> Vec<Candidate> {
+    candidates
+        .into_iter()
+        .filter(|c| inventory.missing_commands(&c.command).is_empty())
+        .collect()
+}
+
+fn annotate_requires_install(
+    candidates: Vec<Candidate>,
+    inventory: &availability::Inventory,
+) -> Vec<Candidate> {
+    candidates
+        .into_iter()
+        .map(|mut c| {
+            let missing = inventory.missing_commands(&c.command);
+            if !missing.is_empty() {
+                let suffix = format!(
+                    "Requires install: {}. Not usable until installed.",
+                    missing.join(", ")
+                );
+                if c.description.is_empty() {
+                    c.description = suffix;
+                } else if !c.description.contains("Requires install:") {
+                    c.description = format!("{} {}", c.description, suffix);
+                }
+            }
+            c
+        })
+        .collect()
 }
 
 /// Print a one-time setup hint when zxcv is invoked outside the shell widget and the

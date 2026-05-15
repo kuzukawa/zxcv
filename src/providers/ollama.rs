@@ -2,24 +2,31 @@ use anyhow::{Context, Result, anyhow, bail};
 use serde_json::{Value, json};
 
 use crate::candidate::Candidate;
-use crate::providers::{MAX_CANDIDATES, SYSTEM_PROMPT, Settings, parse_candidates_json};
+use crate::providers::{
+    GenerationContext, MAX_CANDIDATES, Settings, build_system_prompt, parse_candidates_json,
+};
 
 const DEFAULT_ENDPOINT: &str = "http://localhost:11434";
 
-pub async fn generate(settings: &Settings, query: &str) -> Result<Vec<Candidate>> {
+pub async fn generate(
+    settings: &Settings,
+    query: &str,
+    context: &GenerationContext,
+) -> Result<Vec<Candidate>> {
     let endpoint = settings
         .endpoint
         .as_deref()
         .unwrap_or(DEFAULT_ENDPOINT)
         .trim_end_matches('/');
     let url = format!("{endpoint}/api/chat");
+    let system_prompt = build_system_prompt(context);
 
     let body = json!({
         "model": settings.model,
         "stream": false,
         "format": candidate_schema(),
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": query}
         ]
     });
