@@ -3,7 +3,9 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 
 use crate::candidate::Candidate;
-use crate::providers::{MAX_CANDIDATES, SYSTEM_PROMPT, Settings, require_api_key};
+use crate::providers::{
+    GenerationContext, MAX_CANDIDATES, Settings, build_system_prompt, require_api_key,
+};
 
 const API_URL: &str = "https://api.anthropic.com/v1/messages";
 const API_VERSION: &str = "2023-06-01";
@@ -13,13 +15,18 @@ struct SuggestCommandsInput {
     candidates: Vec<Candidate>,
 }
 
-pub async fn generate(settings: &Settings, query: &str) -> Result<Vec<Candidate>> {
+pub async fn generate(
+    settings: &Settings,
+    query: &str,
+    context: &GenerationContext,
+) -> Result<Vec<Candidate>> {
     let api_key = require_api_key(settings)?;
+    let system_prompt = build_system_prompt(context);
 
     let body = json!({
         "model": settings.model,
         "max_tokens": 1024,
-        "system": format!("{SYSTEM_PROMPT}\n- Always call the `suggest_commands` tool. Do not respond in plain text."),
+        "system": format!("{system_prompt}\n- Always call the `suggest_commands` tool. Do not respond in plain text."),
         "tool_choice": {"type": "tool", "name": "suggest_commands"},
         "tools": [{
             "name": "suggest_commands",

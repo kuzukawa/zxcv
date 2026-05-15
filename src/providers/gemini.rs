@@ -3,19 +3,25 @@ use serde_json::{Value, json};
 
 use crate::candidate::Candidate;
 use crate::providers::{
-    MAX_CANDIDATES, SYSTEM_PROMPT, Settings, parse_candidates_json, require_api_key,
+    GenerationContext, MAX_CANDIDATES, Settings, build_system_prompt, parse_candidates_json,
+    require_api_key,
 };
 
 const API_BASE: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
-pub async fn generate(settings: &Settings, query: &str) -> Result<Vec<Candidate>> {
+pub async fn generate(
+    settings: &Settings,
+    query: &str,
+    context: &GenerationContext,
+) -> Result<Vec<Candidate>> {
     let api_key = require_api_key(settings)?;
+    let system_prompt = build_system_prompt(context);
     let base = format!("{API_BASE}/{model}:generateContent", model = settings.model);
     let mut url = reqwest::Url::parse(&base).context("failed to parse Gemini URL")?;
     url.query_pairs_mut().append_pair("key", api_key);
 
     let body = json!({
-        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
         "contents": [{"role": "user", "parts": [{"text": query}]}],
         "generationConfig": {
             "responseMimeType": "application/json",
