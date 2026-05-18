@@ -13,17 +13,23 @@ struct CacheFile {
     candidates: Vec<Candidate>,
 }
 
-fn cache_path(provider: &str, model: &str, query: &str) -> Result<PathBuf> {
+fn cache_path(provider: &str, model: &str, query: &str, context_key: &str) -> Result<PathBuf> {
     let mut h = DefaultHasher::new();
     provider.hash(&mut h);
     model.hash(&mut h);
     query.hash(&mut h);
+    context_key.hash(&mut h);
     let key = format!("{:016x}.json", h.finish());
     Ok(paths::llm_cache_dir()?.join(key))
 }
 
-pub fn load(provider: &str, model: &str, query: &str) -> Result<Option<Vec<Candidate>>> {
-    let path = cache_path(provider, model, query)?;
+pub fn load(
+    provider: &str,
+    model: &str,
+    query: &str,
+    context_key: &str,
+) -> Result<Option<Vec<Candidate>>> {
+    let path = cache_path(provider, model, query, context_key)?;
     if !path.exists() {
         return Ok(None);
     }
@@ -34,8 +40,14 @@ pub fn load(provider: &str, model: &str, query: &str) -> Result<Option<Vec<Candi
     Ok(Some(file.candidates))
 }
 
-pub fn save(provider: &str, model: &str, query: &str, candidates: &[Candidate]) -> Result<()> {
-    let path = cache_path(provider, model, query)?;
+pub fn save(
+    provider: &str,
+    model: &str,
+    query: &str,
+    context_key: &str,
+    candidates: &[Candidate],
+) -> Result<()> {
+    let path = cache_path(provider, model, query, context_key)?;
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)
             .with_context(|| format!("failed to create cache directory {}", parent.display()))?;
@@ -43,8 +55,7 @@ pub fn save(provider: &str, model: &str, query: &str, candidates: &[Candidate]) 
     let file = CacheFile {
         candidates: candidates.to_vec(),
     };
-    let text =
-        serde_json::to_string_pretty(&file).context("failed to serialize cache contents")?;
+    let text = serde_json::to_string_pretty(&file).context("failed to serialize cache contents")?;
     fs::write(&path, text)
         .with_context(|| format!("failed to write cache file {}", path.display()))?;
     Ok(())

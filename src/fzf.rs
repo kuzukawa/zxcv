@@ -83,7 +83,13 @@ pub fn write_candidates(w: &mut impl Write, candidates: &[Candidate]) -> Result<
     for c in candidates {
         let command = sanitize(&c.command);
         let description = sanitize(&c.description);
-        writeln!(w, "{command}\t{description}").context("failed to write candidate to fzf")?;
+        let display = sanitize(&display_command(c));
+        // Wire format:
+        //   col1: display command (can include install marker)
+        //   col2: description
+        //   col3: raw command to execute when selected
+        writeln!(w, "{display}\t{description}\t{command}")
+            .context("failed to write candidate to fzf")?;
     }
     Ok(())
 }
@@ -93,13 +99,31 @@ fn sanitize(s: &str) -> String {
 }
 
 fn parse_candidate_line(line: &str) -> Candidate {
-    let mut parts = line.splitn(2, '\t');
-    let command = parts.next().unwrap_or("").to_string();
+    let mut parts = line.splitn(3, '\t');
+    let first = parts.next().unwrap_or("").to_string();
     let description = parts.next().unwrap_or("").to_string();
+    let raw_command = parts.next().unwrap_or("");
+    let command = if raw_command.is_empty() {
+        first
+    } else {
+        raw_command.to_string()
+    };
     Candidate {
         command,
         description,
     }
+}
+
+fn display_command(candidate: &Candidate) -> String {
+    if requires_install(&candidate.description) {
+        format!("[NEEDS INSTALL] {}", candidate.command)
+    } else {
+        candidate.command.clone()
+    }
+}
+
+fn requires_install(description: &str) -> bool {
+    description.contains("Requires install:")
 }
 
 fn shell_single_quote(s: &str) -> String {
