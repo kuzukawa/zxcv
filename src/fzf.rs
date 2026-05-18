@@ -6,7 +6,10 @@ use anyhow::{Context, Result, anyhow, bail};
 use crate::candidate::Candidate;
 use crate::debug;
 
-const FZF_HEADER: &str = "Enter: select  |  Ctrl-G: generate candidates with LLM";
+const HEADER_HISTORY: &str =
+    "MODE: HISTORY (frecency)  |  Enter: pick  |  Ctrl-G: generate with LLM  |  Esc: quit";
+const HEADER_LLM: &str =
+    "MODE: LLM CANDIDATES  |  Enter: pick  |  Ctrl-C: back to history  |  Esc: quit";
 
 pub fn ensure_available() -> Result<()> {
     let status = Command::new("fzf")
@@ -29,24 +32,32 @@ pub fn pick(initial_query: &str, candidates: &[Candidate]) -> Result<Option<Cand
 
     // fzf auto-shell-quotes {q}, so do NOT wrap it in additional quotes here.
     let reload_cmd = format!("{exe_quoted} --internal -- {{q}}");
+    let history_cmd = format!("{exe_quoted} --history-only");
     // clear-query removes the current input so fzf's filter doesn't hide the reloaded rows
     // (whose English columns may not fuzzy-match a Japanese query).
-    let bind_arg = format!("ctrl-g:reload({reload_cmd})+clear-query");
+    // ctrl-c cancels any ongoing LLM reload and restores history without exiting fzf.
+    let bind_llm = format!(
+        "ctrl-g:reload({reload_cmd})+clear-query+change-header({HEADER_LLM})"
+    );
+    let bind_cancel = format!(
+        "ctrl-c:reload({history_cmd})+change-header({HEADER_HISTORY})"
+    );
 
     let mut cmd = Command::new("fzf");
     cmd.arg("--delimiter=\t")
         .arg("--with-nth=1")
         .arg("--preview=printf '%s' {2}")
         .arg("--preview-window=down:3:wrap")
-        .arg(format!("--bind={bind_arg}"))
+        .arg(format!("--bind={bind_llm}"))
+        .arg(format!("--bind={bind_cancel}"))
         .arg(format!("--query={initial_query}"))
-        .arg(format!("--header={FZF_HEADER}"))
+        .arg(format!("--header={HEADER_HISTORY}"))
         .arg("--no-multi")
         .arg("--ansi")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped());
 
-    debug::log(format!("fzf: bind={bind_arg}"));
+    debug::log(format!("fzf: bind_llm={bind_llm} bind_cancel={bind_cancel}"));
     debug::log(format!(
         "fzf: args={:?}",
         cmd.get_args().collect::<Vec<_>>()

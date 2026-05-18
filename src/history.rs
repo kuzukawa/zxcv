@@ -91,6 +91,27 @@ pub fn sorted_by_frecency(history: &History) -> Vec<&Entry> {
     entries
 }
 
+/// Return frecency-sorted history candidates, filtering injected `[zxcv ...]` rows.
+/// When history is empty, return a single placeholder row so the picker makes it
+/// obvious the user is looking at (empty) history rather than a stalled UI.
+pub fn candidates_or_placeholder(history: &History) -> Vec<Candidate> {
+    let v: Vec<Candidate> = sorted_by_frecency(history)
+        .iter()
+        .map(|e| e.to_candidate())
+        .filter(|c| !c.command.starts_with("[zxcv"))
+        .collect();
+    if v.is_empty() {
+        vec![Candidate {
+            command: "[zxcv] No history yet".to_string(),
+            description:
+                "Type a description, then press Ctrl-G to generate candidates with the LLM."
+                    .to_string(),
+        }]
+    } else {
+        v
+    }
+}
+
 /// Record a selection: bump count + last_at on existing entry, or insert new.
 pub fn record(history: &mut History, query: &str, candidate: &Candidate) {
     let now = now();

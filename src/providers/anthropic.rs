@@ -49,7 +49,12 @@ pub async fn generate(settings: &Settings, query: &str) -> Result<Vec<Candidate>
         .context("failed to parse Anthropic API response as JSON")?;
 
     if !status.is_success() {
-        bail!("Anthropic API returned {}: {}", status, payload);
+        return Err(super::api_error(
+            "Anthropic",
+            status.as_u16(),
+            &payload.to_string(),
+            settings.provider.api_key_env(),
+        ));
     }
 
     extract_candidates(&payload)

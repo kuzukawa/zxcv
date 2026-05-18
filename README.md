@@ -160,7 +160,7 @@ to create the file from a template and open it in `$VISUAL` / `$EDITOR`.
 provider = "anthropic"   # anthropic | openai | ollama | gemini
 
 [providers.anthropic]
-model = "claude-sonnet-4-6"
+model = "claude-haiku-4-5"
 # api_key = "sk-ant-..."   # prefer ANTHROPIC_API_KEY env var
 
 [providers.openai]
@@ -231,9 +231,12 @@ instantaneous.
 
 ### Shell integration
 
-The picker by itself only prints the selected command to stdout. To have it
-land **in your shell's command-line buffer** (not executed — you still press
-Enter yourself), install the shell widget:
+When launched directly in an interactive terminal (not via shell widget),
+`zxcv` prints the selected command to stdout and also copies it to your system
+clipboard.
+
+To insert directly into the latest prompt line, install and use the shell
+widget:
 
 #### zsh
 
@@ -318,7 +321,7 @@ files. They are intentionally conservative — `rm -rf ./build` and
 
 | Provider  | Default model         |
 |-----------|-----------------------|
-| Anthropic | `claude-sonnet-4-6`   |
+| Anthropic | `claude-haiku-4-5` |
 | OpenAI    | `gpt-5`               |
 | Gemini    | `gemini-2.5-flash`    |
 | Ollama    | `llama3`              |

@@ -24,6 +24,10 @@ pub struct Cli {
     #[arg(long, hide = true)]
     pub internal: bool,
 
+    /// Internal: emit history candidates as TSV to stdout without LLM call (used by fzf cancel).
+    #[arg(long, hide = true)]
+    pub history_only: bool,
+
     #[command(subcommand)]
     pub command: Option<Subcmd>,
 }
